@@ -1,4 +1,5 @@
-# KMGHub — Marketplace de Pocillos
+# KMGHub — Marketplace de todo
+
 
 Plataforma ecommerce tipo Mercado Libre construida con Next.js + Node.js + PostgreSQL.
 

@@ -1,0 +1,74 @@
+/* src/app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans',    sans-serif;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #0e0e0e; }
+  ::-webkit-scrollbar-thumb { background: #3d3d3d; border-radius: 2px; }
+
+  ::selection { background: #e8c547; color: #0e0e0e; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-500 text-dark-900 font-medium px-6 py-3 rounded-lg
+           hover:bg-brand-400 active:scale-95 transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline {
+    @apply border border-neutral-700 text-dark-50 px-6 py-3 rounded-lg
+           hover:border-neutral-500 hover:bg-white/5 transition-all duration-150;
+  }
+
+  .btn-ghost {
+    @apply text-dark-50 px-4 py-2 rounded-lg
+           hover:bg-white/5 transition-all duration-150;
+  }
+
+  .card {
+    @apply bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden;
+  }
+
+  .input {
+    @apply w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3
+           text-dark-50 placeholder-neutral-500 outline-none
+           focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30
+           transition-colors duration-150;
+  }
+
+  .label {
+    @apply text-sm text-neutral-400 mb-1 block;
+  }
+
+  .badge {
+    @apply text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+
+  .badge-hot  { @apply bg-red-900/60 text-red-300; }
+  .badge-new  { @apply bg-brand-500/20 text-brand-500; }
+  .badge-sale { @apply bg-blue-900/60 text-blue-300; }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.animate-fade-in-up  { animation: fadeInUp 0.4s ease forwards; }
+.animate-slide-right { animation: slideInRight 0.3s ease forwards; }

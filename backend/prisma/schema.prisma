@@ -1,0 +1,309 @@
+// prisma/schema.prisma
+// MugHero Marketplace - Data Model
+// Diseñado para escalar a multi-vendedor
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USUARIOS ───────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER   // cliente normal
+  SELLER     // vendedor (futuro multi-vendor)
+  ADMIN      // administrador
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  firstName     String
+  lastName      String
+  phone         String?
+  avatar        String?
+  role          Role      @default(CUSTOMER)
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relaciones
+  addresses     Address[]
+  orders        Order[]
+  cart          Cart?
+  reviews       Review[]
+  seller        Seller?         // si el usuario es vendedor
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String
+  label      String  // "Casa", "Trabajo"
+  fullName   String
+  phone      String
+  street     String
+  city       String
+  department String
+  zipCode    String?
+  isDefault  Boolean @default(false)
+
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders     Order[]
+
+  @@map("addresses")
+}
+
+// ─── VENDEDORES (Escalabilidad multi-vendor) ────────────────────────────────
+
+model Seller {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  storeName   String
+  storeSlug   String    @unique
+  description String?
+  logo        String?
+  banner      String?
+  isVerified  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  commission  Float     @default(0.10) // 10% por defecto
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+  products    Product[]
+
+  @@map("sellers")
+}
+
+// ─── CATÁLOGO ───────────────────────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  slug        String     @unique
+  description String?
+  image       String?
+  parentId    String?    // para subcategorías
+  isActive    Boolean    @default(true)
+
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String        @id @default(uuid())
+  sellerId      String?       // null = admin/plataforma
+  categoryId    String?
+  name          String
+  slug          String        @unique
+  description   String
+  shortDesc     String?
+  price         Float
+  comparePrice  Float?        // precio tachado
+  cost          Float?        // costo interno
+  sku           String?       @unique
+  stock         Int           @default(0)
+  lowStockAlert Int           @default(5)
+  weight        Float?        // gramos, para envío
+  images        ProductImage[]
+  isActive      Boolean       @default(true)
+  isFeatured    Boolean       @default(false)
+  tags          String[]
+  metaTitle     String?
+  metaDesc      String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  seller        Seller?       @relation(fields: [sellerId], references: [id])
+  category      Category?     @relation(fields: [categoryId], references: [id])
+  variants      ProductVariant[]
+  reviews       Review[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(uuid())
+  productId String
+  url       String
+  alt       String?
+  isPrimary Boolean @default(false)
+  order     Int     @default(0)
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+model ProductVariant {
+  id        String  @id @default(uuid())
+  productId String
+  name      String  // "Color", "Talla"
+  value     String  // "Negro", "M"
+  price     Float?  // sobreprecio si aplica
+  stock     Int     @default(0)
+  sku       String?
+
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_variants")
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String
+  rating    Int      // 1-5
+  title     String?
+  body      String?
+  isVerified Boolean @default(false) // compra verificada
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([productId, userId])
+  @@map("reviews")
+}
+
+// ─── CARRITO ─────────────────────────────────────────────────────────────────
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int     @default(1)
+  variantId String?
+
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId, variantId])
+  @@map("cart_items")
+}
+
+// ─── ÓRDENES ─────────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING      // recién creada
+  CONFIRMED    // pago confirmado
+  PROCESSING   // en preparación
+  SHIPPED      // enviada
+  DELIVERED    // entregada
+  CANCELLED    // cancelada
+  REFUNDED     // reembolsada
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  orderNumber     String        @unique // MH-2025-0001
+  userId          String
+  addressId       String?
+  status          OrderStatus   @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  subtotal        Float
+  shippingCost    Float         @default(0)
+  discount        Float         @default(0)
+  tax             Float         @default(0)
+  total           Float
+  notes           String?
+  trackingNumber  String?
+  couponCode      String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user            User          @relation(fields: [userId], references: [id])
+  address         Address?      @relation(fields: [addressId], references: [id])
+  items           OrderItem[]
+  payment         Payment?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String  // snapshot al momento de compra
+  productImg  String?
+  variantInfo String? // snapshot variante
+  quantity    Int
+  unitPrice   Float
+  total       Float
+
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// ─── PAGOS ────────────────────────────────────────────────────────────────────
+
+enum PaymentMethod {
+  WOMPI
+  PAYu
+  PSE
+  NEQUI
+  CASH_ON_DELIVERY
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  orderId         String        @unique
+  method          PaymentMethod
+  amount          Float
+  currency        String        @default("COP")
+  status          PaymentStatus @default(PENDING)
+  transactionId   String?       // ID de la pasarela
+  gatewayResponse Json?         // respuesta completa
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  order           Order         @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}

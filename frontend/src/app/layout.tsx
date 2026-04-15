@@ -20,11 +20,11 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: { default: 'MugHero — Pocillos de Colección', template: '%s | MugHero' },
+  title: { default: 'KMGHub — Pocillos de Colección', template: '%s | KMGHub' },
   description: 'Los mejores pocillos de superhéroes, anime y videojuegos. DC, Marvel, Dragon Ball y más. Envíos a toda Colombia.',
   keywords: ['pocillos', 'mugs', 'superheroes', 'colombia', 'batman', 'spiderman', 'anime'],
   openGraph: {
-    title: 'MugHero — Pocillos de Colección',
+    title: 'KMGHub — Pocillos de Colección',
     description: 'Los mejores pocillos de tus personajes favoritos',
     type: 'website',
   },

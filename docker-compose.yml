@@ -1,51 +1,45 @@
-# docker-compose.yml
-# MugHero Marketplace — Stack completo
-# Uso: docker-compose up --build
-
 version: '3.9'
 
 services:
 
-  # ── POSTGRESQL ──────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
-    container_name: mughero_db
+    container_name: kmghub_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER:     mughero
-      POSTGRES_PASSWORD: mughero_pass_2025
-      POSTGRES_DB:       mughero_db
+      POSTGRES_USER:     kmghub
+      POSTGRES_PASSWORD: kmghub_pass_2025
+      POSTGRES_DB:       kmghub_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mughero -d mughero_db"]
+      test: ["CMD-SHELL", "pg_isready -U kmghub -d kmghub_db"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ── BACKEND (Node.js + Express) ─────────────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mughero_backend
+    container_name: kmghub_backend
     restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL:             postgresql://mughero:mughero_pass_2025@postgres:5432/mughero_db
-      PORT:                     4000
-      NODE_ENV:                 production
-      API_URL:                  http://localhost:4000
-      FRONTEND_URL:             http://localhost:3000
-      JWT_SECRET:               super_secret_jwt_key_change_in_production_32chars
-      JWT_EXPIRES_IN:           15m
-      JWT_REFRESH_SECRET:       super_secret_refresh_key_change_in_production
-      JWT_REFRESH_EXPIRES_IN:   7d
-      ALLOWED_ORIGINS:          http://localhost:3000
+      DATABASE_URL:           postgresql://kmghub:kmghub_pass_2025@postgres:5432/kmghub_db
+      PORT:                   4000
+      NODE_ENV:               production
+      API_URL:                http://localhost:4000
+      FRONTEND_URL:           http://localhost:3000
+      JWT_SECRET:             kmghub_jwt_secret_super_seguro_2025
+      JWT_EXPIRES_IN:         15m
+      JWT_REFRESH_SECRET:     kmghub_refresh_secret_super_seguro_2025
+      JWT_REFRESH_EXPIRES_IN: 7d
+      ALLOWED_ORIGINS:        http://localhost:3000
     ports:
       - "4000:4000"
     volumes:
@@ -56,24 +50,21 @@ services:
       timeout: 5s
       retries: 3
 
-  # ── FRONTEND (Next.js) ───────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL:          http://localhost:4000/api
-        NEXT_PUBLIC_SITE_URL:         http://localhost:3000
-        NEXT_PUBLIC_WA_NUMBER:        573000000000
-    container_name: mughero_frontend
+        NEXT_PUBLIC_API_URL:  http://localhost:4000/api
+        NEXT_PUBLIC_SITE_URL: http://localhost:3000
+        NEXT_PUBLIC_WA_NUMBER: 573000000000
+    container_name: kmghub_frontend
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
     ports:
       - "3000:3000"
-    environment:
-      NODE_ENV: production
 
 volumes:
   postgres_data:

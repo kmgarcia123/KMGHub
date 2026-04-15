@@ -1,13 +1,13 @@
 'use client';
-// src/app/products/page.tsx
-import { useEffect, useState } from 'react';
+import { Suspense } from 'react';
+import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { productsAPI, categoriesAPI } from '@/lib/api';
 import ProductCard from '@/components/product/ProductCard';
 import { SlidersHorizontal, Search } from 'lucide-react';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const [search,   setSearch]   = useState(searchParams.get('search') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
@@ -17,43 +17,31 @@ export default function ProductsPage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
 
- const { data: productsData, isLoading } = useQuery({
-  queryKey: ['products', { search, category, sort, order, page, minPrice, maxPrice }],
-  queryFn: () => productsAPI.getAll({ 
-    search, 
-    category, 
-    sort, 
-    order, 
-    page, 
-    limit: 12,
-    ...(minPrice && { minPrice: parseFloat(minPrice) }),
-    ...(maxPrice && { maxPrice: parseFloat(maxPrice) }),
-  } as any).then(r => r.data),
-});
+  const { data: productsData, isLoading } = useQuery({
+    queryKey: ['products', { search, category, sort, order, page, minPrice, maxPrice }],
+    queryFn: () => productsAPI.getAll({
+      search, category, sort, order, page, limit: 12,
+      ...(minPrice && { minPrice: parseFloat(minPrice) }),
+      ...(maxPrice && { maxPrice: parseFloat(maxPrice) }),
+    }).then(r => r.data),
+  });
 
   const { data: catsData } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesAPI.getAll().then(r => r.data),
   });
 
-  const products = productsData?.products || [];
+  const products   = productsData?.products || [];
   const pagination = productsData?.pagination;
   const categories = catsData || [];
-
-  const fmt = (n: number) =>
-    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
       <div className="flex flex-col lg:flex-row gap-8">
-
-        {/* ── FILTERS SIDEBAR ───────────────────────────────────────────── */}
         <aside className="lg:w-56 shrink-0">
           <h2 className="font-display text-2xl tracking-wide mb-6 flex items-center gap-2">
             <SlidersHorizontal size={18} className="text-brand-500" /> FILTROS
           </h2>
-
-          {/* Categorías */}
           <div className="mb-6">
             <p className="text-xs text-neutral-500 uppercase tracking-widest mb-3">Categoría</p>
             <ul className="space-y-1">
@@ -74,21 +62,15 @@ export default function ProductsPage() {
               ))}
             </ul>
           </div>
-
-          {/* Precio */}
           <div className="mb-6">
             <p className="text-xs text-neutral-500 uppercase tracking-widest mb-3">Precio (COP)</p>
             <div className="space-y-2">
               <input type="number" placeholder="Mínimo" value={minPrice}
-                onChange={e => { setMinPrice(e.target.value); setPage(1); }}
-                className="input text-sm py-2" />
+                onChange={e => { setMinPrice(e.target.value); setPage(1); }} className="input text-sm py-2" />
               <input type="number" placeholder="Máximo" value={maxPrice}
-                onChange={e => { setMaxPrice(e.target.value); setPage(1); }}
-                className="input text-sm py-2" />
+                onChange={e => { setMaxPrice(e.target.value); setPage(1); }} className="input text-sm py-2" />
             </div>
           </div>
-
-          {/* Ordenar */}
           <div>
             <p className="text-xs text-neutral-500 uppercase tracking-widest mb-3">Ordenar</p>
             <select value={`${sort}-${order}`}
@@ -101,35 +83,25 @@ export default function ProductsPage() {
             </select>
           </div>
         </aside>
-
-        {/* ── PRODUCTS ──────────────────────────────────────────────────── */}
         <div className="flex-1">
-          {/* Search bar */}
           <div className="flex gap-3 mb-6">
             <div className="flex-1 relative">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-              <input
-                type="text" value={search}
+              <input type="text" value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1); }}
-                placeholder="Buscar por nombre, personaje, categoría..."
-                className="input pl-9"
-              />
+                placeholder="Buscar productos..." className="input pl-9" />
             </div>
           </div>
-
-          {/* Results count */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-neutral-500">
-              {isLoading ? 'Cargando...' : `${pagination?.total || 0} productos encontrados`}
+              {isLoading ? 'Cargando...' : `${pagination?.total || 0} productos`}
             </p>
             {category && (
               <button onClick={() => setCategory('')} className="text-xs text-brand-500 hover:underline">
-                ✕ Limpiar filtros
+                ✕ Limpiar
               </button>
             )}
           </div>
-
-          {/* Grid */}
           {isLoading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -145,19 +117,15 @@ export default function ProductsPage() {
           ) : products.length === 0 ? (
             <div className="text-center py-20">
               <p className="text-4xl mb-4">🔍</p>
-              <p className="text-neutral-500">No encontramos productos con esos filtros.</p>
+              <p className="text-neutral-500">No encontramos productos.</p>
               <button onClick={() => { setSearch(''); setCategory(''); setMinPrice(''); setMaxPrice(''); }}
-                className="btn-outline mt-4 text-sm px-5 py-2.5">
-                Limpiar filtros
-              </button>
+                className="btn-outline mt-4 text-sm px-5 py-2.5">Limpiar filtros</button>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {products.map((p: any) => <ProductCard key={p.id} product={p} />)}
             </div>
           )}
-
-          {/* Pagination */}
           {pagination && pagination.pages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-10">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
@@ -175,5 +143,17 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }

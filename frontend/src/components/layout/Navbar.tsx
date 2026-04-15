@@ -39,7 +39,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/" className="font-display text-3xl tracking-widest shrink-0">
-          Mug<span className="text-brand-500">Hero</span>
+          KMG<span className="text-brand-500">Hub</span>
         </Link>
 
         {/* Search */}

@@ -47,7 +47,7 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="font-display text-5xl tracking-wide">PANEL <span className="text-brand-500">ADMIN</span></h1>
-          <p className="text-neutral-500 mt-1">Gestiona tu tienda MugHero</p>
+          <p className="text-neutral-500 mt-1">Gestiona tu tienda KMGHub</p>
         </div>
         <Link href="/admin/products/new" className="btn-primary flex items-center gap-2">
           <Plus size={16} /> Nuevo producto

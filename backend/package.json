@@ -1,7 +1,6 @@
 {
-  "name": "mughero-backend",
+  "name": "kmghub-backend",
   "version": "1.0.0",
-  "description": "MugHero Marketplace API",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",

@@ -31,7 +31,7 @@ const getTime = () => new Date().toLocaleTimeString('es-CO', { hour: '2-digit', 
 export default function WhatsAppBot() {
   const [isOpen, setIsOpen]       = useState(false);
   const [messages, setMessages]   = useState<Message[]>([
-    { id: 1, text: '¡Hola! 👋 Soy el asistente de MugHero.\n¿En qué te puedo ayudar hoy?', isBot: true, time: getTime() },
+    { id: 1, text: '¡Hola! 👋 Soy el asistente de KMGHub.\n¿En qué te puedo ayudar hoy?', isBot: true, time: getTime() },
   ]);
   const [input, setInput]         = useState('');
   const [showQuick, setShowQuick] = useState(true);
@@ -50,7 +50,7 @@ export default function WhatsAppBot() {
       setShowQuick(false);
       setTimeout(() => {
         addMsg('¡Con mucho gusto! Te conecto con nuestro equipo ahora mismo... 🙋', true);
-        setTimeout(() => window.open(`https://wa.me/${WA_NUMBER}?text=Hola, quiero hablar con un asesor de MugHero`, '_blank'), 1200);
+        setTimeout(() => window.open(`https://wa.me/${WA_NUMBER}?text=Hola, quiero hablar con un asesor de KMGHub`, '_blank'), 1200);
       }, 600);
       return;
     }
@@ -91,7 +91,7 @@ export default function WhatsAppBot() {
           <div className="bg-[#075E54] px-4 py-3 flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-green-400 flex items-center justify-center text-lg">🦸</div>
             <div className="flex-1">
-              <p className="text-white text-sm font-medium">MugHero · Soporte</p>
+              <p className="text-white text-sm font-medium">KMGHub · Soporte</p>
               <p className="text-green-200 text-xs">🟢 En línea</p>
             </div>
             <button onClick={() => setIsOpen(false)} className="text-white/70 hover:text-white transition-colors">
